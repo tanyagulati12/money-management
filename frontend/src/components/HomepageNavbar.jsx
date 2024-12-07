@@ -1,15 +1,23 @@
 import React from "react";
 import {motion} from "framer-motion";
 import {FaDollarSign} from "react-icons/fa6";
+import {useState, useEffect} from "react";
 
 
 const HomepageNavbar = () => {
 
-    const navbar_options = [
+    const [navbar_options, setNavbar] = useState([
         {name: "Dashboard", link: "/dashboard"},
         {name: "Company", link: "/company"},
-        {name: "Register", link: "/register"},
-    ];
+        {name: "Login", link: "/register"},
+    ]);
+    useEffect(() => {
+        if(localStorage.getItem("username") != null) {
+            let tempNavbar = [...navbar_options];
+            tempNavbar[2] = {name: "Log Out", link: "/logout"}
+            setNavbar(tempNavbar);
+        }
+    })
     return (
         <nav className={`fixed  w-[90%] left-1/2 -translate-x-1/2 text-white flex justify-between items-center p-8`}>
             <motion.h1

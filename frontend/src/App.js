@@ -1,29 +1,37 @@
 import React from "react";
-import {motion} from "framer-motion";
+import { motion } from "framer-motion";
 import HomepageNavbar from "./components/HomepageNavbar";
-import {BrowserRouter, Routes, Route, json} from "react-router-dom";
-import {FaArrowRight, FaDeleteLeft} from "react-icons/fa6";
-import {MdOutlineDelete} from "react-icons/md";
+import { BrowserRouter, Routes, Route, json, Link } from "react-router-dom";
+import { FaArrowRight, FaDeleteLeft } from "react-icons/fa6";
+import { MdOutlineDelete } from "react-icons/md";
+import Register from "./components/Register";
 
 function App() {
 
     const [state, setState] = React.useState(0);
-    const [error, setError] = React.useState({is: false, message: ""});
+    const [error, setError] = React.useState({ is: false, message: "" });
     const [users, setUsers] = React.useState({});
     const [userErr, setUserErr] = React.useState(false);
     const [userData, setUserData] = React.useState({
-        username: "", monthlyIncome: "", percentageOfInvestment: "",
+        title: "", monthlyIncome: "", percentageOfInvestment: "",
     });
+    const [username, setUsername] = React.useState("");
 
     React.useEffect(() => {
-        const fetchData = async () => {
-            const data = await fetch("http://localhost:8080/getUsers");
-            const jsondata = await data.json();
-            console.log(jsondata);
-            setUsers(jsondata);
-            setUserErr(true);
+        // const fetchData = async () => {
+        //     const data = await fetch("http://localhost:8080/getUsers");
+        //     const jsondata = await data.json();
+        //     console.log(jsondata);
+        //     setUsers(jsondata);
+        //     setUserErr(true);
+        // }
+        // try {fetchData();}
+        // catch(e) {
+        //     console.log("Can't connect with backend, consider checking if server is running...")
+        // }
+        if(localStorage.getItem("username") != null) {
+            setUsername(localStorage.getItem("username"));
         }
-        fetchData();
     }, []);
 
     React.useEffect(() => {
@@ -39,7 +47,7 @@ function App() {
         <Routes>
             <Route path={"/"} element={
                 <React.Fragment>
-                    <HomepageNavbar/>
+                    <HomepageNavbar />
                     <main
                         style={{
                             background: `radial-gradient(circle farthest-side at 50% 0%, #2E073F 0% , black ${state}%)`
@@ -178,18 +186,19 @@ function App() {
                                 transition={{
                                     duration: 0.5, ease: [0.85, 0, 0.15, 1], delay: 1.5
                                 }}
-                                className={`w-[90%] p-8 items-center h-[90%] justify-center flex flex-col bg-white/10 border-[0.25px] border-gray-600 rounded-xl`}>
-
-                                <h1 className={`bg-white w-full text-center flex-1 flex justify-center items-center rounded-xl text-black text-[1.25rem] `}>
-                                    {!error.is ? "Create Dashboard" : error.message}
+                                className={`w-[90%] h-[90%] p-8 items-center justify-center flex flex-col bg-white/10 border-[0.25px] border-gray-600 rounded-xl`}>
+                                {username === ""? 
+                                <Link to="/register" className="w-fit text-xl p-11 text-center rounded-xl text-black bg-white">Login to continue</Link> : (
+                                    <div className="">
+                                <h1 className={` w-full text-3xl p-11 text-center flex-1 flex justify-center items-center rounded-xl text-white`}>
+                                    {!error.is ? "Add Month" : error.message}
                                 </h1>
-
                                 <form
 
                                     onSubmit={(e) => {
                                         e.preventDefault();
                                         const fetchData = async () => {
-                                            const data = await fetch(`http://localhost:8080/createUser/${userData.username}/${userData.monthlyIncome}/${userData.percentageOfInvestment}`, {
+                                            const data = await fetch(`http://localhost:8080/createUser/${userData.title}/${userData.monthlyIncome}/${userData.percentageOfInvestment}`, {
                                                 method: "POST",
                                             });
                                             const jsonData = await data.json();
@@ -203,56 +212,56 @@ function App() {
 
                                     }}
                                     className={`w-full`}>
+                                    <h1 className={`my-3`}>Title: </h1>
+
+                                    <input
+                                        onChange={(e) => {
+                                            setUserData({
+                                                title: e.target.value,
+                                                monthlyIncome: userData.monthlyIncome,
+                                                percentageOfInvestment: userData.percentageOfInvestment
+                                            })
+                                        }}
+                                        placeholder={`Enter here.`}
+                                        className={`w-full text-[1.1rem] rounded-l outline-none p-2 bg-white/10 border-[0.25px] border-white`} />
                                     <h1 className={`my-3`}>Your monthly income: </h1>
                                     <input
                                         onChange={(e) => {
                                             setUserData({
-                                                username: userData.username,
+                                                title: userData.title,
                                                 monthlyIncome: e.target.value,
                                                 percentageOfInvestment: userData.percentageOfInvestment
                                             })
                                         }}
                                         placeholder={`Enter here.`}
-                                        className={`w-full text-[1.1rem] rounded-l outline-none p-2 bg-white/10 border-[0.25px] border-white`}/>
+                                        className={`w-full text-[1.1rem] rounded-l outline-none p-2 bg-white/10 border-[0.25px] border-white`} />
 
                                     <h1 className={`my-3`}>Percentage of investment per month: </h1>
 
                                     <input
                                         onChange={(e) => {
                                             setUserData({
-                                                username: userData.username,
+                                                title: userData.title,
                                                 monthlyIncome: userData.monthlyIncome,
                                                 percentageOfInvestment: e.target.value
                                             })
                                         }}
                                         placeholder={`Enter here.`}
-                                        className={`w-full text-[1.1rem] rounded-l outline-none p-2 bg-white/10 border-[0.25px] border-white`}/>
-
-
-                                    <h1 className={`my-3`}>Username: </h1>
-
-                                    <input
-                                        onChange={(e) => {
-                                            setUserData({
-                                                username: e.target.value,
-                                                monthlyIncome: userData.monthlyIncome,
-                                                percentageOfInvestment: userData.percentageOfInvestment
-                                            })
-                                        }}
-                                        placeholder={`Enter here.`}
-                                        className={`w-full text-[1.1rem] rounded-l outline-none p-2 bg-white/10 border-[0.25px] border-white`}/>
+                                        className={`w-full text-[1.1rem] rounded-l outline-none p-2 bg-white/10 border-[0.25px] border-white`} />
 
                                     <button
                                         type={"submit"}
                                         className={`bg-white w-full rounded-l text-black p-2 mt-5`}>Submit
                                     </button>
                                 </form>
+                                </div>
+    )}
                             </motion.div>
                         </section>
                     </main>
 
                 </React.Fragment>
-            }/>
+            } />
 
             <Route path={"/dashboard"} element={
                 <React.Fragment>
@@ -277,12 +286,14 @@ function App() {
                         </motion.header>
                         {userErr && users.users.map((item, index) => {
                             return (
-                                <UserSection item={item} key={index} index={index}/>
+                                <UserSection item={item} key={index} index={index} />
                             )
                         })}
                     </main>
                 </React.Fragment>
-            }/>
+            } />
+
+            <Route path="/register" element={<Register />} />
         </Routes>
     </BrowserRouter>);
 }
@@ -293,9 +304,9 @@ const Home = () => {
 }
 
 
-const UserSection = ({item, index}) => {
+const UserSection = ({ item, index }) => {
 
-    const [task, setTask] = React.useState({taskName: "", taskTax: ""});
+    const [task, setTask] = React.useState({ taskName: "", taskTax: "" });
     return (
         <section
             key={index}
@@ -317,7 +328,7 @@ const UserSection = ({item, index}) => {
                     <div>
 
                         Name:
-                        <br/>
+                        <br />
                         <span className={`font-bold uppercase`}>{item.name}</span>
                     </div>
 
@@ -351,19 +362,19 @@ const UserSection = ({item, index}) => {
 
                             <div>
                                 <input
-                                    onChange={(e) => setTask({taskName: e.target.value, taskTax: task.taskTax})}
+                                    onChange={(e) => setTask({ taskName: e.target.value, taskTax: task.taskTax })}
                                     className={`bg-white/5 mb-2 outline-none border-[0.25px] border-white rounded-2xl p-2 text-[1rem]`}
-                                    placeholder={"Enter Task Name."}/>
-                                <br/>
+                                    placeholder={"Enter Task Name."} />
+                                <br />
                                 <input
-                                    onChange={(e) => setTask({taskName: task.taskName, taskTax: e.target.value})}
+                                    onChange={(e) => setTask({ taskName: task.taskName, taskTax: e.target.value })}
                                     className={`bg-white/5 outline-none border-[0.25px] border-white rounded-2xl p-2 text-[1rem]`}
-                                    placeholder={"Enter Task Name."}/>
+                                    placeholder={"Enter Task Name."} />
                             </div>
                             <button
                                 type={"submit"}
                                 className={`bg-white text-black p-2 rounded-2xl`}>
-                                <FaArrowRight/>
+                                <FaArrowRight />
                             </button>
                         </motion.form>
                     </div>
@@ -399,7 +410,7 @@ const UserSection = ({item, index}) => {
                                         deleteTask();
                                     }}
                                     className={`p-1 rounded-full hover:bg-white hover:text-black hover:cursor-pointer`}>
-                                    <MdOutlineDelete/>
+                                    <MdOutlineDelete />
                                 </div>
                                 {item_t.tax}
                             </span>
