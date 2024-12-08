@@ -17,7 +17,7 @@ const HomepageNavbar = () => {
             tempNavbar[2] = {name: "Log Out", link: "/logout"}
             setNavbar(tempNavbar);
         }
-    })
+    }, []);
     return (
         <nav className={`fixed  w-[90%] left-1/2 -translate-x-1/2 text-white flex justify-between items-center p-8`}>
             <motion.h1

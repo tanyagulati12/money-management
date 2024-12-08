@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
             data: [
                 {
                 name: String,
-                tax: Number,
+                amount: Number,
                 }
             ],
             monthlyIncome: Number,

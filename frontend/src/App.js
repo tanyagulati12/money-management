@@ -10,29 +10,35 @@ function App() {
 
     const [state, setState] = React.useState(0);
     const [error, setError] = React.useState({ is: false, message: "" });
-    const [users, setUsers] = React.useState({});
-    const [userErr, setUserErr] = React.useState(false);
+    const [data, setData] = React.useState([]);
     const [userData, setUserData] = React.useState({
         title: "", monthlyIncome: "", percentageOfInvestment: "",
     });
     const [username, setUsername] = React.useState("");
+    console.log(data);
 
     React.useEffect(() => {
-        // const fetchData = async () => {
-        //     const data = await fetch("http://localhost:8080/getUsers");
-        //     const jsondata = await data.json();
-        //     console.log(jsondata);
-        //     setUsers(jsondata);
-        //     setUserErr(true);
-        // }
-        // try {fetchData();}
-        // catch(e) {
-        //     console.log("Can't connect with backend, consider checking if server is running...")
-        // }
         if(localStorage.getItem("username") != null) {
             setUsername(localStorage.getItem("username"));
         }
     }, []);
+
+    React.useEffect(() => {
+        const fetchData = async () => {
+            console.log("data");
+            const data = await fetch(`http://localhost:8080/dashboard/${username}`);
+            const jsondata = await data.json();
+            if(data.ok) {
+                setData(jsondata);
+            }
+        }
+        try {
+            if(username !== "") fetchData();
+        }
+        catch(e) {
+            console.log("Can't connect with backend, consider checking if server is running...")
+        }
+    }, [username]);
 
     React.useEffect(() => {
         if (state < 100) {
@@ -190,26 +196,27 @@ function App() {
                                 {username === ""? 
                                 <Link to="/register" className="w-fit text-xl p-11 text-center rounded-xl text-black bg-white">Login to continue</Link> : (
                                     <div className="">
-                                <h1 className={` w-full text-3xl p-11 text-center flex-1 flex justify-center items-center rounded-xl text-white`}>
-                                    {!error.is ? "Add Month" : error.message}
-                                </h1>
+                                <h1 className={` w-full text-3xl p-11 text-center flex-1 flex justify-center items-center rounded-xl text-white`}>Add Title</h1>
+                                <p className="text-center text-red-600">{!error.is ? "" : error.message}</p>
                                 <form
 
                                     onSubmit={(e) => {
                                         e.preventDefault();
                                         const fetchData = async () => {
-                                            const data = await fetch(`http://localhost:8080/createUser/${userData.title}/${userData.monthlyIncome}/${userData.percentageOfInvestment}`, {
+                                            const data = await fetch(`http://localhost:8080/create/${username}/${userData.title}/${userData.monthlyIncome}/${userData.percentageOfInvestment}`, {
                                                 method: "POST",
                                             });
+                                            console.log(data);
                                             const jsonData = await data.json();
                                             console.log(jsonData);
+                                            if(!data.ok) {
+                                                setError({is:true, message: jsonData.message});
+                                            }else{
+                                                window.location.assign("/dashboard");
+                                            }
+                                            
                                         }
                                         fetchData();
-
-                                        setTimeout(() => {
-                                            window.location.assign("/dashboard");
-                                        }, 1000);
-
                                     }}
                                     className={`w-full`}>
                                     <h1 className={`my-3`}>Title: </h1>
@@ -284,29 +291,33 @@ function App() {
                             className={`text-white mb-10 font-bold text-center text-[3rem] uppercase`}>
                             Dashboard
                         </motion.header>
-                        {userErr && users.users.map((item, index) => {
-                            return (
-                                <UserSection item={item} key={index} index={index} />
-                            )
-                        })}
+                        {
+                        data.map((item, index) =>  {
+                            let historySum = 0;
+                            item.data.forEach((entry) => historySum += entry.amount);
+                            item.historySum = historySum;
+                        return(<UserSection item={item} key={index} index={index} username={username}/>)
+            })
+                        }
                     </main>
                 </React.Fragment>
             } />
 
             <Route path="/register" element={<Register />} />
+            <Route path="/logout" element={<LogOut />} />
         </Routes>
     </BrowserRouter>);
 }
 
 
-const Home = () => {
+// const Home = () => {
 
-}
+// }
 
 
-const UserSection = ({ item, index }) => {
+const UserSection = ({ item, index, username }) => {
 
-    const [task, setTask] = React.useState({ taskName: "", taskTax: "" });
+    const [task, setTask] = React.useState({ taskName: "", taskAmount: "" });
     return (
         <section
             key={index}
@@ -329,7 +340,7 @@ const UserSection = ({ item, index }) => {
 
                         Name:
                         <br />
-                        <span className={`font-bold uppercase`}>{item.name}</span>
+                        <span className={`font-bold uppercase`}>{item.monthName}</span>
                     </div>
 
                     <div>
@@ -337,7 +348,7 @@ const UserSection = ({ item, index }) => {
                             onSubmit={(e) => {
                                 e.preventDefault();
                                 const sendTaskData = async () => {
-                                    const data = await fetch(`http://localhost:8080/addTask/${item.name}/${task.taskName}/${task.taskTax}`, {
+                                    const data = await fetch(`http://localhost:8080/addTask/${username}/${item.monthName}/${task.taskName}/${task.taskAmount}`, {
                                         method: "POST",
                                     })
                                     const jsonData = await data.json();
@@ -360,16 +371,15 @@ const UserSection = ({ item, index }) => {
                             }}
                             className={`flex justify-center items-center gap-[1rem]`}>
 
-                            <div>
+                            <div className="flex gap-11">
                                 <input
-                                    onChange={(e) => setTask({ taskName: e.target.value, taskTax: task.taskTax })}
+                                    onChange={(e) => setTask({ taskName: e.target.value, taskAmount: task.taskAmount })}
                                     className={`bg-white/5 mb-2 outline-none border-[0.25px] border-white rounded-2xl p-2 text-[1rem]`}
-                                    placeholder={"Enter Task Name."} />
-                                <br />
+                                    placeholder={"Enter Task Name"} />
                                 <input
-                                    onChange={(e) => setTask({ taskName: task.taskName, taskTax: e.target.value })}
+                                    onChange={(e) => setTask({ taskName: task.taskName, taskAmount: e.target.value })}
                                     className={`bg-white/5 outline-none border-[0.25px] border-white rounded-2xl p-2 text-[1rem]`}
-                                    placeholder={"Enter Task Name."} />
+                                    placeholder={"Enter Amount"} />
                             </div>
                             <button
                                 type={"submit"}
@@ -387,17 +397,18 @@ const UserSection = ({ item, index }) => {
                         <h1>Spending Type</h1>
                         <h1>Amount</h1>
                     </div>
-                    {!item.history.length &&
+                    {!item.data.length &&
                         <div className={`w-full text-center font-light text-gray-600 my-10`}>No
                             Data here 🥲
                         </div>
                     }
-                    {item.history.map((item_t, index) => {
+                    {item.data.map((item_t, index) => {
                         return <div
                             className={`border-[0.25px] mb-4 rounded-xl bg-black/10 text-[1.24rem] flex justify-between items-center border-white p-4`}>
                             {item_t.name}
                             <span className={`flex gap-[1rem] items-center`}>
-                                <div
+                                {item_t.amount}
+                                {/* <div
                                     onClick={() => {
                                         console.log(item.name, item_t.name);
                                         const deleteTask = async () => {
@@ -411,8 +422,7 @@ const UserSection = ({ item, index }) => {
                                     }}
                                     className={`p-1 rounded-full hover:bg-white hover:text-black hover:cursor-pointer`}>
                                     <MdOutlineDelete />
-                                </div>
-                                {item_t.tax}
+                                </div> */}
                             </span>
                         </div>
                     })}
@@ -452,7 +462,7 @@ const UserSection = ({ item, index }) => {
                                 delay: 0.2
                             }}
                             className={`p-4 text-[3rem] flex-1 border-[0.25px] text-center bg-black/10 border-white rounded-xl inline-block font-bold text-white`}>
-                            {item.monthlyIncome * (item.percentageOfInvestment / 100)}
+                            {item.monthlyIncome * ((100-item.percentageOfInvestment) / 100)}
                             <div className={`font-light uppercase text-[0.8rem]`}>
                                 Income After Cutoff
                             </div>
@@ -493,7 +503,7 @@ const UserSection = ({ item, index }) => {
                             delay: 0.4
                         }}
                         className={`p-4 w-full mt-[1rem] flex-1 text-[3rem] border-[0.25px] text-center bg-black/10 border-white rounded-xl inline-block font-bold text-white`}>
-                        {(item.monthlyIncome * (item.percentageOfInvestment / 100)) - item.historySum}
+                        {(item.monthlyIncome * ((100-item.percentageOfInvestment) / 100)) - item.historySum}
                         <div className={`font-light uppercase text-[0.8rem]`}>
                             Total Wealth Left
                         </div>
@@ -502,6 +512,13 @@ const UserSection = ({ item, index }) => {
             </div>
         </section>
     )
+}
+
+const LogOut = () => {
+    React.useEffect(() => {
+        localStorage.removeItem("username");
+        window.location.assign("/");
+    });
 }
 
 export default App;

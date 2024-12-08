@@ -1,6 +1,6 @@
 
 import "./register.css";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Register () {
@@ -30,7 +30,7 @@ export default function Register () {
             let dataJ = await data.json();
             if(data.ok) {
                 localStorage.setItem("username", dataJ.username);
-                navigator("/");
+                window.location.assign("/");
             }else{
                 alert(dataJ.message);
             }
@@ -53,7 +53,7 @@ export default function Register () {
         let dataJ = await data.json();
             if(data.ok) {
                 localStorage.setItem("username", dataJ.username);
-                navigator("/");
+                window.location.assign("/");
             }else{
                 alert(dataJ.message);
             }
@@ -67,8 +67,8 @@ export default function Register () {
         setSignup({...signupData, [e.target.name] : e.target.value});
     } 
 
-    const container = document.querySelector(".container");
-    return (<div className="container">
+    const container = useRef(null);
+    return (<div className="container" ref={container}>
         <div className="forms-container">
           <div className="signin-signup">
             <form action="#" className="sign-in-form" onSubmit={handleSignin}>
@@ -145,7 +145,7 @@ export default function Register () {
                 ex ratione. Aliquid!
               </p> */}
               <button className="btn transparent" id="sign-up-btn" onClick={() => {
-  container.classList.add("sign-up-mode");
+  container.current.classList.add("sign-up-mode");
 }}>
                 Sign up
               </button>
@@ -159,7 +159,7 @@ export default function Register () {
                 laboriosam ad deleniti.
               </p> */}
               <button className="btn transparent" id="sign-in-btn" onClick={() => {
-  container.classList.remove("sign-up-mode");
+  container.current.classList.remove("sign-up-mode");
 }}>
                 Sign in
               </button>

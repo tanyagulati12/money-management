@@ -1,6 +1,7 @@
 
 const express = require("express");
 const router = require("./routers/signup.routes");
+const User=require("./models/signup.model")
 
 
 const fileSystem = require("node:fs");
@@ -73,34 +74,76 @@ application.post('/removeTask/:account/:name', async (req, res) => {
 });
 
 
-// application.post("/createUser/:name/:monthlyIncome/:percentageOfInvestment", (req, res) => {
-//     const {name, monthlyIncome, percentageOfInvestment} = req.params;
-//     const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));
-//     for (let i = 0; i < fileContent["users"].length; i++) {
-//         if (fileContent["users"][i].name === name) {
-//             res.json(fileContent["users"]);
-//             return;
-//         }
-//     }
-//     fileContent["users"].push({name, monthlyIncome, percentageOfInvestment, history: [], historySum: "0"});
-//     fileSystem.writeFileSync("./users.json", JSON.stringify(fileContent));
-//     res.json(fileContent["users"]);
-// })
-// // adds task
-// application.post("/addTask/:account/:name/:tax", (req, res) => {
-//     const {account, name, tax} = req.params;
-//     const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));
-//     for (let i = 0; i < fileContent["users"].length; i++) {
-//         if (fileContent["users"][i].name === account) {
-//             fileContent["users"][i].history.push({name, tax});
-//             fileContent["users"][i].historySum = parseInt(fileContent["users"][i].historySum) + parseInt(tax);
-//             fileSystem.writeFileSync("./users.json", JSON.stringify(fileContent));
-//             res.json(fileContent);
-//             return;
-//         }
-//     }
+application.post("/create/:username/:title/:monthlyIncome/:percentageOfInvestment", async (req, res) => {
+    const {username, title, monthlyIncome, percentageOfInvestment} = req.params;
 
-// })
+    const user = await User.findOne({username});
+    if(!user) {
+        res.status(404).send({message: "Invalid credentials"});
+    }else{
+        const ind = user.history.findIndex((item) => item.monthName == title);
+        if(ind != -1) {
+            res.status(404).send({message: "This month already exists"});
+        }else {
+            user.history.push({
+                monthName: title,
+                monthlyIncome,
+                percentageOfInvestment,
+                data: []
+            })
+            user.save();
+            res.status(200).send({message: "Updated Successfully"});
+        }
+    }
+
+    // const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));
+    // for (let i = 0; i < fileContent["users"].length; i++) {
+    //     if (fileContent["users"][i].name === name) {
+    //         res.json(fileContent["users"]);
+    //         return;
+    //     }
+    // }
+    // fileContent["users"].push({name, monthlyIncome, percentageOfInvestment, history: [], historySum: "0"});
+    // fileSystem.writeFileSync("./users.json", JSON.stringify(fileContent));
+    // res.json(fileContent["users"]);
+})
+// // adds task
+application.post("/addTask/:username/:monthName/:name/:amount", async (req, res) => {
+    const {username, monthName, name, amount} = req.params;
+
+    const user = await User.findOne({username});
+    if(!user) {
+        res.status(404).send({message: "Invalid Credentials"});
+    }
+    else{
+        console.log(user);
+        console.log(monthName);
+        user.history.forEach((item, ind) => {
+            if(item.monthName.toLowerCase() == monthName) {
+                user.history[ind].data.push({name, amount});
+            }
+        })
+        user.save();
+
+        const monthData = user.history.find((entry) => entry.monthName == monthName);
+        if(!monthData) {
+            res.status(404).send({message: "Title not found"});
+        }else{
+            res.status(200).send(monthData.data);
+        } 
+    }
+    // const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));
+    // for (let i = 0; i < fileContent["users"].length; i++) {
+    //     if (fileContent["users"][i].name === account) {
+    //         fileContent["users"][i].history.push({name, tax});
+    //         fileContent["users"][i].historySum = parseInt(fileContent["users"][i].historySum) + parseInt(tax);
+    //         fileSystem.writeFileSync("./users.json", JSON.stringify(fileContent));
+    //         res.json(fileContent);
+    //         return;
+    //     }
+    // }
+
+})
 // // removes history
 // application.post("/removeTask/:account/:name", (req, res) => {
 //     const {account, name} = req.params;
@@ -121,10 +164,19 @@ application.post('/removeTask/:account/:name', async (req, res) => {
 //     }
 // })
 
-// application.get("/getUsers", (req, res) => {
-//     const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));
-//     res.send(fileContent);
-// })
+application.get("/dashboard/:username", async (req, res) => {
+    const {username} = req?.params;
+    console.log("Called for user: " + username);
+    const user = await User.findOne({username});
+    if(!user) {
+        res.status(400).send({message: "Invalid Credentials"});
+    }else{
+        const data = user.history;
+        res.status(200).send(data);
+    }
+    // const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));
+    // res.send(fileContent);
+})
 
 
 application.listen(PORT, HOST, () => {
