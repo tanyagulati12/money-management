@@ -315,6 +315,13 @@ function App() {
 
 const UserSection = ({ item, index, username }) => {
     const [history, setHistory] = React.useState(item.data);
+    const [historySum, setHistorySum] = React.useState(0);
+
+    React.useEffect(() => {
+        let sum1 = 0;
+        history.forEach((entry) => sum1 += entry.amount);
+        setHistorySum(sum1);
+    }, [history]);
     const [task, setTask] = React.useState({ taskName: "", taskAmount: "" });
     return (
         <section
@@ -340,7 +347,7 @@ const UserSection = ({ item, index, username }) => {
                         <br />
                         <span className={`font-bold uppercase`}>{item.monthName}</span>
                     </div>
-
+{/* 
                     <div>
                         <motion.form
                             onSubmit={(e) => {
@@ -384,11 +391,11 @@ const UserSection = ({ item, index, username }) => {
                                 <FaArrowRight />
                             </button>
                         </motion.form>
-                    </div>
+                    </div> */}
                 </motion.h1>
             </div>
 
-            <div className={`w-full  h-full flex-1 mt-10 flex gap-[1rem]`}>
+            <div className={`w-full  h-full grid-cols-2 mt-10 grid gap-[1rem]`}>
                 <div className={`flex-1 h-full p-4 text-white`}>
                     <div className={`w-full mb-5 px-2 flex justify-between items-center`}>
                         <h1>Spending Type</h1>
@@ -424,7 +431,53 @@ const UserSection = ({ item, index, username }) => {
                             </span>
                         </div>
                     })}
+                    <div>
+                        <motion.form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                const sendTaskData = async () => {
+                                    const data = await fetch(`http://localhost:8080/addTask/${username}/${item.monthName}/${task.taskName}/${task.taskAmount}`, {
+                                        method: "POST",
+                                    })
+                                    const jsonData = await data.json();
+                                    console.log(jsonData.history[index].data);
+                                    setHistory(jsonData.history[index].data);
+                                    setTask({ taskName: "", taskAmount: "" });
+                                }
+                                sendTaskData();
+                            }}
+                            animate={{
+                                x: 0
+                            }}
+                            initial={{
+                                x: -400
+                            }}
+                            transition={{
+                                duration: 0.1,
+                                delay: 0
+                            }}
+                            className={`flex flex-col justify-start p-0`}>
+                            <div className="flex w-full gap-2">
+                                <input
+                                    onChange={(e) => setTask({ taskName: e.target.value, taskAmount: task.taskAmount })}
+                                    className={`bg-white/5 outline-none border-[0.25px] border-white rounded-2xl p-2 text-[1rem] w-1/2`}
+                                    value={task.taskName}
+                                    placeholder={"Enter Task Name"} />
+                                <input
+                                    onChange={(e) => setTask({ taskName: task.taskName, taskAmount: e.target.value })}
+                                    value={task.taskAmount}
+                                    className={`bg-white/5 outline-none border-[0.25px] border-white rounded-2xl p-2 text-[1rem] w-1/2`}
+                                    placeholder={"Enter Amount"} />
+                            </div>
+                            <button
+                                type={"submit"}
+                                className={`bg-white text-black p-2 rounded-2xl flex items-center mt-2`}>
+                                Add New Task <FaArrowRight />
+                            </button>
+                        </motion.form>
+                    </div>
                 </div>
+                
 
                 <div className={`flex-1 h-full`}>
                     <div className={`flex gap-[1rem]`}>
@@ -501,7 +554,7 @@ const UserSection = ({ item, index, username }) => {
                             delay: 0.4
                         }}
                         className={`p-4 w-full mt-[1rem] flex-1 text-[3rem] border-[0.25px] text-center bg-black/10 border-white rounded-xl inline-block font-bold text-white`}>
-                        {(item.monthlyIncome * ((100-item.percentageOfInvestment) / 100)) - item.historySum}
+                        {(item.monthlyIncome * ((100-item.percentageOfInvestment) / 100)) - historySum}
                         <div className={`font-light uppercase text-[0.8rem]`}>
                             Total Wealth Left
                         </div>
