@@ -119,7 +119,8 @@ application.post("/addTask/:username/:monthName/:name/:amount", async (req, res)
         console.log(user);
         console.log(monthName);
         user.history.forEach((item, ind) => {
-            if(item.monthName.toLowerCase() == monthName) {
+            if(item.monthName.toLowerCase() == monthName.toLowerCase()) {
+                console.log("ADd at index: " , ind);
                 user.history[ind].data.push({name, amount});
             }
         })
@@ -129,7 +130,7 @@ application.post("/addTask/:username/:monthName/:name/:amount", async (req, res)
         if(!monthData) {
             res.status(404).send({message: "Title not found"});
         }else{
-            res.status(200).send(monthData.data);
+            res.status(200).send(user);
         } 
     }
     // const fileContent = JSON.parse(fileSystem.readFileSync("./users.json", "utf8"));

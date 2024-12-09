@@ -15,7 +15,6 @@ function App() {
         title: "", monthlyIncome: "", percentageOfInvestment: "",
     });
     const [username, setUsername] = React.useState("");
-    console.log(data);
 
     React.useEffect(() => {
         if(localStorage.getItem("username") != null) {
@@ -25,7 +24,6 @@ function App() {
 
     React.useEffect(() => {
         const fetchData = async () => {
-            console.log("data");
             const data = await fetch(`http://localhost:8080/dashboard/${username}`);
             const jsondata = await data.json();
             if(data.ok) {
@@ -181,7 +179,7 @@ function App() {
                             </div>
                         </section>
 
-                        <section className={`flex-1 pt-[5rem] h-full flex justify-end items-start p-8`}>
+                        <section className={`flex-1 pt-[5rem] flex justify-end items-start p-8`}>
                             <motion.div
                                 animate={{
                                     y: 0
@@ -196,7 +194,7 @@ function App() {
                                 {username === ""? 
                                 <Link to="/register" className="w-fit text-xl p-11 text-center rounded-xl text-black bg-white">Login to continue</Link> : (
                                     <div className="">
-                                <h1 className={` w-full text-3xl p-11 text-center flex-1 flex justify-center items-center rounded-xl text-white`}>Add Title</h1>
+                                <h1 className={` w-full text-3xl p-11 text-center flex-1 flex justify-center items-center rounded-xl text-white`}>Add to Dashboard</h1>
                                 <p className="text-center text-red-600">{!error.is ? "" : error.message}</p>
                                 <form
 
@@ -219,7 +217,7 @@ function App() {
                                         fetchData();
                                     }}
                                     className={`w-full`}>
-                                    <h1 className={`my-3`}>Title: </h1>
+                                    <h1 className={`my-3`}>Username: </h1>
 
                                     <input
                                         onChange={(e) => {
@@ -316,7 +314,7 @@ function App() {
 
 
 const UserSection = ({ item, index, username }) => {
-
+    const [history, setHistory] = React.useState(item.data);
     const [task, setTask] = React.useState({ taskName: "", taskAmount: "" });
     return (
         <section
@@ -352,11 +350,10 @@ const UserSection = ({ item, index, username }) => {
                                         method: "POST",
                                     })
                                     const jsonData = await data.json();
-                                    console.log(jsonData);
+                                    console.log(jsonData.history[index].data);
+                                    setHistory(jsonData.history[index].data);
                                 }
-
                                 sendTaskData();
-                                window.location.reload();
                             }}
                             animate={{
                                 x: 0
@@ -397,15 +394,16 @@ const UserSection = ({ item, index, username }) => {
                         <h1>Spending Type</h1>
                         <h1>Amount</h1>
                     </div>
-                    {!item.data.length &&
+                    {!history.length &&
                         <div className={`w-full text-center font-light text-gray-600 my-10`}>No
                             Data here 🥲
                         </div>
                     }
-                    {item.data.map((item_t, index) => {
+                    {history.map((item_t, index) => {
                         return <div
-                            className={`border-[0.25px] mb-4 rounded-xl bg-black/10 text-[1.24rem] flex justify-between items-center border-white p-4`}>
+                            className={`border-[0.25px] mb-4 rounded-xl bg-black/10 text-[1.24rem] flex justify-between items-center border-white p-4`} key={index}>
                             {item_t.name}
+                    
                             <span className={`flex gap-[1rem] items-center`}>
                                 {item_t.amount}
                                 {/* <div
