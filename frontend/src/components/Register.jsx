@@ -45,7 +45,7 @@ export default function Register () {
         e.preventDefault();
         let data = await fetch("http://localhost:8080/auth/login", {
             method: "POST",
-            body: JSON.stringify(signupData),
+            body: JSON.stringify(signinData),
             headers: {
                 "Content-Type": "application/json",
             },
